@@ -71,6 +71,7 @@ runs:
     - name: Signing using Signtool
       run: |
         signtool.exe sign `
+        /debug `
         /sha1 ${{ inputs.sm-code-signing-cert-sha1-hash }} `
         /tr http://timestamp.digicert.com `
         /td SHA256 `
