@@ -67,7 +67,7 @@ runs:
       run: |
         msiexec /i smtools-windows-x64.msi /quiet /qn 
         smksp_registrar.exe list
-        smctl windows certsync --keypair-alias=${{ secrets.SM_KEYPAIR_ALIAS }}
+        smctl windows certsync --keypair-alias=${{ inputs.sm-keypair-alias }}
         smctl.exe keypair ls
         smctl healthcheck
       shell: cmd
