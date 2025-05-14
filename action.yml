@@ -17,8 +17,11 @@ inputs:
   sm-client-cert-password:
     description: "The client certificate password"
     required: true
-  sm-code-signing-cert-sha1-hash:
+  sm-thumbprint:
     description: "The code signing certificate public SHA1 hash"
+    required: true
+  sm-keypair-alias:
+    description: "The keypair alias"
     required: true
 
 runs:
@@ -37,6 +40,7 @@ runs:
         echo "SM_API_KEY=${{ inputs.sm-api-key }}" >> "$GITHUB_ENV" 
         echo "SM_CLIENT_CERT_FILE=D:\\Certificate_pkcs12.p12" >> "$GITHUB_ENV" 
         echo "SM_CLIENT_CERT_PASSWORD=${{ inputs.sm-client-cert-password }}" >> "$GITHUB_ENV"
+        echo "SM_KEYPAIR_ALIAS=${{ inputs.sm-keypair-alias }}" >> "$GITHUB_ENV"
         echo "C:\Program Files (x86)\Windows Kits\10\App Certification Kit" >> $GITHUB_PATH 
         echo "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools" >> $GITHUB_PATH 
         echo "C:\Program Files\DigiCert\DigiCert One Signing Manager Tools" >> $GITHUB_PATH
@@ -62,16 +66,16 @@ runs:
     - name: Setup SSM KSP for signing
       run: |
         msiexec /i smtools-windows-x64.msi /quiet /qn 
-        smksp_registrar.exe list 
-        smctl.exe keypair ls 
-        C:\Windows\System32\certutil.exe -csp "DigiCert Signing Manager KSP" -key -user 
-        smksp_cert_sync.exe
+        smksp_registrar.exe list
+        smctl windows certsync --keypair-alias=${{ secrets.SM_KEYPAIR_ALIAS }}
+        smctl.exe keypair ls
+        smctl healthcheck
       shell: cmd
 
     - name: Signing using Signtool
       run: |
         signtool.exe sign `
-        /sha1 ${{ inputs.sm-code-signing-cert-sha1-hash }} `
+        /sha1 ${{ inputs.sm-thumbprint }} `
         /tr http://timestamp.digicert.com `
         /td SHA256 `
         /fd SHA256 `
