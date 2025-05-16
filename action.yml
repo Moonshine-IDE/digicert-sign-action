@@ -29,6 +29,7 @@ runs:
 
   steps:
     - name: Debug secrets (sanitized)
+      shell: cmd
       run: |
         echo "Host: ${{ inputs.sm-host }}"
         echo "Keypair Alias: ${{ inputs.sm-keypair-alias }}"
