@@ -29,60 +29,62 @@ runs:
 
   steps:
     - name: Setup signing certificate
+      shell: powershell
       run: |
-        echo "${{ inputs.sm-client-cert-file-b64 }}" | base64 --decode > /d/Certificate_pkcs12.p12
-      shell: bash
+        [System.IO.File]::WriteAllBytes(
+          "D:\Certificate_pkcs12.p12",
+          [Convert]::FromBase64String("${{ inputs.sm-client-cert-file-b64 }}")
+        )
 
     - name: Set signing variables
       id: variables
+      shell: cmd
       run: |
-        echo "SM_HOST=${{ inputs.sm-host }}" >> "$GITHUB_ENV" 
-        echo "SM_API_KEY=${{ inputs.sm-api-key }}" >> "$GITHUB_ENV" 
-        echo "SM_CLIENT_CERT_FILE=D:\\Certificate_pkcs12.p12" >> "$GITHUB_ENV" 
-        echo "SM_CLIENT_CERT_PASSWORD=${{ inputs.sm-client-cert-password }}" >> "$GITHUB_ENV"
-        echo "SM_KEYPAIR_ALIAS=${{ inputs.sm-keypair-alias }}" >> "$GITHUB_ENV"
-        echo "C:\Program Files (x86)\Windows Kits\10\App Certification Kit" >> $GITHUB_PATH 
-        echo "C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools" >> $GITHUB_PATH 
-        echo "C:\Program Files\DigiCert\DigiCert One Signing Manager Tools" >> $GITHUB_PATH
-      shell: bash
+        echo SM_HOST=%{{ inputs.sm-host }}%>> %GITHUB_ENV%
+        echo SM_API_KEY=%{{ inputs.sm-api-key }}%>> %GITHUB_ENV%
+        echo SM_CLIENT_CERT_FILE=D:\Certificate_pkcs12.p12>> %GITHUB_ENV%
+        echo SM_CLIENT_CERT_PASSWORD=%{{ inputs.sm-client-cert-password }}%>> %GITHUB_ENV%
+        echo C:\Program Files (x86)\Windows Kits\10\App Certification Kit>> %GITHUB_PATH%
+        echo C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools>> %GITHUB_PATH%
+        echo C:\Program Files\DigiCert\DigiCert One Signing Manager Tools>> %GITHUB_PATH%
 
     - name: Cache smtools
       id: cache-smtools
-      uses: actions/cache@v3
+      uses: actions/cache@v4
       with:
         path: smtools-windows-x64.msi
         key: smtools-windows
 
     - name: Download smtools
       if: ${{ !steps.cache-smtools.cache-hit }}
+      shell: cmd
       run: |
-        echo cache hit: ${{ steps.cache-smtools.cache-hit }}
         curl ^
         -X GET https://one.digicert.com/signingmanager/api-ui/v1/releases/smtools-windows-x64.msi/download ^
         -H "x-api-key:${{ inputs.sm-api-key }}" ^
         -o smtools-windows-x64.msi
-      shell: cmd
 
     - name: Setup SSM KSP for signing
+      shell: cmd
       run: |
         msiexec /i smtools-windows-x64.msi /quiet /qn 
         smksp_registrar.exe list
         smctl windows certsync --keypair-alias=${{ inputs.sm-keypair-alias }}
         smctl.exe keypair ls
         smctl healthcheck
-      shell: cmd
 
     - name: Signing using Signtool
+      shell: powershell
       run: |
         signtool.exe sign `
-        /sha1 ${{ inputs.sm-thumbprint }} `
-        /tr http://timestamp.digicert.com `
-        /td SHA256 `
-        /fd SHA256 `
-        ${{ inputs.bin-path }}
+          /sha1 ${{ inputs.sm-thumbprint }} `
+          /tr http://timestamp.digicert.com `
+          /td SHA256 `
+          /fd SHA256 `
+          /debug `
+          ${{ inputs.bin-path }}
 
         signtool.exe verify `
-        /v `
-        /pa `
-        ${{ inputs.bin-path }}
-      shell: powershell
+          /v `
+          /pa `
+          ${{ inputs.bin-path }}
