@@ -31,7 +31,11 @@ runs:
     - name: Setup signing certificate
       shell: powershell
       run: |
-        [System.Convert]::FromBase64String(${{ inputs.sm-client-cert-file-b64 }}) | Set-Content -Path "D:\Certificate_pkcs12.p12" -Encoding Byte
+        $certBase64 = ${{ inputs.sm-client-cert-file-b64 }}
+        Write-Host "Cert base64 length: " $certBase64.Length
+        $certBytes = [System.Convert]::FromBase64String($certBase64)
+        Write-Host "Cert bytes length: " $certBytes.Length
+        [System.IO.File]::WriteAllBytes("D:\Certificate_pkcs12.p12", $certBytes)
 
     - name: Set signing variables
       id: variables
