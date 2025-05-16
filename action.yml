@@ -27,16 +27,7 @@ inputs:
 runs:
   using: "composite"
 
-  steps:
-    - name: Debug secrets (sanitized)
-      shell: cmd
-      run: |
-        echo "Host: ${{ inputs.sm-host }}"
-        echo "Keypair Alias: ${{ inputs.sm-keypair-alias }}"
-        echo "Thumbprint: ${{ inputs.sm-thumbprint }}"
-        echo "API Key Length: ${#inputs.sm-api-key}"
-        echo "Client Cert B64 Length: ${#inputs.sm-client-cert-file-b64}"
-        
+  steps:        
     - name: Setup signing certificate
       shell: powershell
       run: |
@@ -49,10 +40,10 @@ runs:
       id: variables
       shell: cmd
       run: |
-        echo SM_HOST=%{{ inputs.sm-host }}%>> %GITHUB_ENV%
-        echo SM_API_KEY=%{{ inputs.sm-api-key }}%>> %GITHUB_ENV%
+        echo SM_HOST=${{ secrets.SM_HOST }}>> %GITHUB_ENV%
+        echo SM_API_KEY=${{ inputs.sm-api-key }}>> %GITHUB_ENV%
         echo SM_CLIENT_CERT_FILE=D:\Certificate_pkcs12.p12>> %GITHUB_ENV%
-        echo SM_CLIENT_CERT_PASSWORD=%{{ inputs.sm-client-cert-password }}%>> %GITHUB_ENV%
+        echo SM_CLIENT_CERT_PASSWORD=${{ inputs.sm-client-cert-password }}>> %GITHUB_ENV%
         echo C:\Program Files (x86)\Windows Kits\10\App Certification Kit>> %GITHUB_PATH%
         echo C:\Program Files (x86)\Microsoft SDKs\Windows\v10.0A\bin\NETFX 4.8 Tools>> %GITHUB_PATH%
         echo C:\Program Files\DigiCert\DigiCert One Signing Manager Tools>> %GITHUB_PATH%
