@@ -31,7 +31,7 @@ runs:
     - name: Setup signing certificate
       shell: powershell
       run: |
-        $certBase64 = ${{ inputs.sm-client-cert-file-b64 }}
+        $certBase64 = '${{ inputs.sm-client-cert-file-b64 }}'
         Write-Host "Cert base64 length: " $certBase64.Length
         $certBytes = [System.Convert]::FromBase64String($certBase64)
         Write-Host "Cert bytes length: " $certBytes.Length
