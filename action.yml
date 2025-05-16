@@ -33,7 +33,7 @@ runs:
       run: |
         [System.IO.File]::WriteAllBytes(
           "D:\Certificate_pkcs12.p12",
-          [Convert]::FromBase64String("${{ inputs.sm-client-cert-file-b64 }}")
+          [Convert]::FromBase64String(${{ inputs.sm-client-cert-file-b64 }})
         )
 
     - name: Set signing variables
