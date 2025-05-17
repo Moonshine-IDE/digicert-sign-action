@@ -79,9 +79,9 @@ runs:
           /td SHA256 `
           /fd SHA256 `
           /debug `
-          ${{ inputs.bin-path }}
+          "${{ inputs.bin-path }}"
 
         signtool.exe verify `
           /v `
           /pa `
-          ${{ inputs.bin-path }}
+          "${{ inputs.bin-path }}"
